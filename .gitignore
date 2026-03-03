@@ -1,0 +1,5 @@
+venv/
+__pycache__/
+attendance.xlsx
+temp.jpg
+images/student_photos/
