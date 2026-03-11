@@ -1,51 +1,67 @@
+import customtkinter as ctk
 import cv2
 import os
 
-# Load Haar Cascade
-face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
-# Student name input
-student_name = input("Enter Student Name: ")
+app = ctk.CTk()
+app.title("Capture Dataset")
+app.geometry("400x250")
 
-# Folder path
-path = f"images/student_photos/{student_name}"
+def capture():
 
-if not os.path.exists(path):
-    os.makedirs(path)
+    name = name_entry.get()
 
-# Mac M2 backend
-cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+    if name == "":
+        return
 
-if not cap.isOpened():
-    print("Camera not working")
-    exit()
+    path = f"images/student_photos/{name}"
 
-count = 0
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+    face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 
-    for (x, y, w, h) in faces:
-        count += 1
-        face = frame[y:y+h, x:x+w]
+    count = 0
 
-        cv2.imwrite(f"{path}/{count}.jpg", face)
+    while True:
 
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 3)
-        cv2.putText(frame, f"Images Captured: {count}", (10,30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+        ret, frame = cap.read()
 
-    cv2.imshow("Dataset Capture - Press Q to Exit", frame)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    if cv2.waitKey(1) & 0xFF == ord('q') or count == 100:
-        break
+        faces = face_cascade.detectMultiScale(gray,1.3,5)
 
-cap.release()
-cv2.destroyAllWindows()
+        for (x,y,w,h) in faces:
 
-print("Dataset Collection Completed!")
+            count += 1
+
+            face = frame[y:y+h,x:x+w]
+
+            cv2.imwrite(f"{path}/{count}.jpg", face)
+
+            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+
+        cv2.imshow("Capturing Dataset",frame)
+
+        if cv2.waitKey(1) == 13 or count == 100:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    app.destroy()
+
+
+label = ctk.CTkLabel(app,text="Enter Student Name",font=("Arial",16))
+label.pack(pady=20)
+
+name_entry = ctk.CTkEntry(app,width=220)
+name_entry.pack(pady=10)
+
+btn = ctk.CTkButton(app,text="Start Capture",command=capture)
+btn.pack(pady=20)
+
+app.mainloop()

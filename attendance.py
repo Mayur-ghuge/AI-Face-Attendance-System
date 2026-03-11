@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 
 def mark_attendance(name):
+
     file = "attendance.xlsx"
 
     if not os.path.exists(file):
@@ -21,10 +22,12 @@ def mark_attendance(name):
             return
 
     now = datetime.now()
+
     ws.append([
         name,
         now.strftime("%d/%m/%Y"),
         now.strftime("%H:%M:%S"),
         "Present"
     ])
+
     wb.save(file)
