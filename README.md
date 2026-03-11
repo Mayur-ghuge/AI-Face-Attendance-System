@@ -73,7 +73,7 @@ AI-Face-Attendance-System
 
 ## 🧠 Face Recognition
 
-![Recognition](screenshots/recognition.png)
+![Recognition](screenshots/recognition.png.jpeg)
 
 ## 📊 Attendance Excel
 
