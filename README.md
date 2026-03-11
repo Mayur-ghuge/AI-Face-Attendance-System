@@ -64,16 +64,16 @@ AI-Face-Attendance-System
 # 📸 Screenshots
 
 ## 🔐 Login Page
-![Login](screenshots/login.png)
+![Login](screenshots/login copy.png)
 
 ## 🖥 Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/dashboard copy.png)
 
 ## 🧠 Face Recognition
-![Recognition](screenshots/recognition.png)
+![Recognition](screenshots/recognition.png copy.jpeg)
 
 ## 📊 Attendance Excel
-![Attendance](screenshots/attendance.png)
+![Attendance](screenshots/attendance copy.png)
 
 ---
 
