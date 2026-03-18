@@ -1,79 +1,56 @@
-import customtkinter as ctk
 import cv2
 import os
+import sys
 
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
-
-app = ctk.CTk()
-app.title("Capture Dataset")
-app.geometry("400x250")
-
-def capture():
-
-    name = name_entry.get()
-
-    if name == "":
-        return
+def capture_images(name):
 
     path = f"images/student_photos/{name}"
-
-    if not os.path.exists(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
 
     face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
-    cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        print("❌ Camera not opening")
+        return
 
     count = 0
+    print("📸 Camera Started...")
 
     while True:
-
         ret, frame = cap.read()
         if not ret:
             break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
         for (x, y, w, h) in faces:
-
             face = frame[y:y+h, x:x+w]
-
-            # ✅ Resize (important for speed later)
             face = cv2.resize(face, (224, 224))
 
             count += 1
-
             cv2.imwrite(f"{path}/{count}.jpg", face)
 
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
-
-            cv2.putText(frame, f"Images: {count}", (10,30),
+            cv2.putText(frame, f"Captured: {count}/30", (10,30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-
-            # ✅ Small delay (avoid duplicate frames)
-            cv2.waitKey(100)
 
         cv2.imshow("Capturing Dataset", frame)
 
-        # ✅ Reduce images to 30
-        if cv2.waitKey(1) == 13 or count == 30:
+        if cv2.waitKey(1) & 0xFF == ord('q') or count >= 30:
             break
 
     cap.release()
     cv2.destroyAllWindows()
-    app.destroy()
+    print("✅ Capture Completed")
 
 
-label = ctk.CTkLabel(app, text="Enter Student Name", font=("Arial",16))
-label.pack(pady=20)
-
-name_entry = ctk.CTkEntry(app, width=220)
-name_entry.pack(pady=10)
-
-btn = ctk.CTkButton(app, text="Start Capture", command=capture)
-btn.pack(pady=20)
-
-app.mainloop()
+# 🔥 DIRECT RUN
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        name = sys.argv[1]
+        capture_images(name)
+    else:
+        print("Usage: python dataset_capture.py <name>")

@@ -10,7 +10,6 @@ app = ctk.CTk()
 app.title("FACE AI - Login")
 app.state("zoomed")
 
-
 # -------------------------
 # LOGIN FUNCTION
 # -------------------------
@@ -28,14 +27,12 @@ def login():
     else:
         messagebox.showerror("Login Failed", "Invalid Username or Password")
 
-
 # -------------------------
 # BACKGROUND FRAME
 # -------------------------
 
 background = ctk.CTkFrame(app, fg_color="#0f172a")
 background.pack(fill="both", expand=True)
-
 
 # -------------------------
 # TITLE
@@ -49,7 +46,6 @@ title = ctk.CTkLabel(
 )
 title.pack(pady=(80,10))
 
-
 subtitle = ctk.CTkLabel(
     background,
     text="Face Recognition Attendance System",
@@ -57,7 +53,6 @@ subtitle = ctk.CTkLabel(
     text_color="gray"
 )
 subtitle.pack(pady=(0,40))
-
 
 # -------------------------
 # LOGIN CARD
@@ -74,14 +69,12 @@ frame.pack(pady=20)
 
 frame.pack_propagate(False)
 
-
 login_title = ctk.CTkLabel(
     frame,
     text="Admin Login",
     font=("Arial",24,"bold")
 )
 login_title.pack(pady=(30,20))
-
 
 # username
 username_entry = ctk.CTkEntry(
@@ -92,7 +85,6 @@ username_entry = ctk.CTkEntry(
     corner_radius=10
 )
 username_entry.pack(pady=10)
-
 
 # password
 password_entry = ctk.CTkEntry(
@@ -105,7 +97,6 @@ password_entry = ctk.CTkEntry(
 )
 password_entry.pack(pady=10)
 
-
 # login button
 login_btn = ctk.CTkButton(
     frame,
@@ -116,7 +107,6 @@ login_btn = ctk.CTkButton(
     command=login
 )
 login_btn.pack(pady=25)
-
 
 # -------------------------
 # FOOTER
@@ -130,8 +120,8 @@ footer = ctk.CTkLabel(
 )
 footer.pack(side="bottom", pady=20)
 
-
 # ENTER key login
 app.bind("<Return>", lambda event: login())
 
 app.mainloop()
+
