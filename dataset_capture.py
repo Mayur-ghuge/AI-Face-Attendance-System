@@ -30,24 +30,36 @@ def capture():
     while True:
 
         ret, frame = cap.read()
+        if not ret:
+            break
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        faces = face_cascade.detectMultiScale(gray,1.3,5)
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-        for (x,y,w,h) in faces:
+        for (x, y, w, h) in faces:
+
+            face = frame[y:y+h, x:x+w]
+
+            # ✅ Resize (important for speed later)
+            face = cv2.resize(face, (224, 224))
 
             count += 1
 
-            face = frame[y:y+h,x:x+w]
-
             cv2.imwrite(f"{path}/{count}.jpg", face)
 
-            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0,255,0), 2)
 
-        cv2.imshow("Capturing Dataset",frame)
+            cv2.putText(frame, f"Images: {count}", (10,30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
 
-        if cv2.waitKey(1) == 13 or count == 100:
+            # ✅ Small delay (avoid duplicate frames)
+            cv2.waitKey(100)
+
+        cv2.imshow("Capturing Dataset", frame)
+
+        # ✅ Reduce images to 30
+        if cv2.waitKey(1) == 13 or count == 30:
             break
 
     cap.release()
@@ -55,13 +67,13 @@ def capture():
     app.destroy()
 
 
-label = ctk.CTkLabel(app,text="Enter Student Name",font=("Arial",16))
+label = ctk.CTkLabel(app, text="Enter Student Name", font=("Arial",16))
 label.pack(pady=20)
 
-name_entry = ctk.CTkEntry(app,width=220)
+name_entry = ctk.CTkEntry(app, width=220)
 name_entry.pack(pady=10)
 
-btn = ctk.CTkButton(app,text="Start Capture",command=capture)
+btn = ctk.CTkButton(app, text="Start Capture", command=capture)
 btn.pack(pady=20)
 
 app.mainloop()

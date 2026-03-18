@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from openpyxl import load_workbook
 from PIL import Image
+import threading
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -13,8 +14,36 @@ app = ctk.CTk()
 app.title("FACE AI - Attendance System")
 app.state("zoomed")
 
-# Deep dark background
 app.configure(fg_color="#0f172a")
+
+# =========================
+# 🔥 Preload DeepFace (better warmup)
+# =========================
+
+def preload_model():
+    from deepface import DeepFace
+    try:
+        DeepFace.build_model("Facenet")
+    except:
+        pass
+
+threading.Thread(target=preload_model, daemon=True).start()
+
+# =========================
+# 🔥 Loading Popup
+# =========================
+
+def show_loading(msg="Loading..."):
+    loading = ctk.CTkToplevel(app)
+    loading.geometry("300x120")
+    loading.title("Please Wait")
+    loading.grab_set()
+
+    label = ctk.CTkLabel(loading, text=msg, font=("Arial",18))
+    label.pack(expand=True)
+
+    loading.update()
+    return loading
 
 # =========================
 # Sidebar
@@ -23,84 +52,53 @@ app.configure(fg_color="#0f172a")
 sidebar = ctk.CTkFrame(app, width=260, corner_radius=0, fg_color="#020617")
 sidebar.pack(side="left", fill="y")
 
-logo = ctk.CTkLabel(
-    sidebar,
-    text="FACE AI",
-    font=("Arial",30,"bold")
-)
-logo.pack(pady=(30,10))
+ctk.CTkLabel(sidebar, text="FACE AI", font=("Arial",30,"bold")).pack(pady=(30,10))
 
-# Profile Image
 if os.path.exists("profile.png"):
     img = ctk.CTkImage(Image.open("profile.png"), size=(120,120))
-    profile = ctk.CTkLabel(sidebar, image=img, text="")
-    profile.pack(pady=10)
+    ctk.CTkLabel(sidebar, image=img, text="").pack(pady=10)
 
-admin = ctk.CTkLabel(
-    sidebar,
-    text="Mayur",
-    font=("Arial",18,"bold")
-)
-admin.pack(pady=(5,30))
+ctk.CTkLabel(sidebar, text="Mayur", font=("Arial",18,"bold")).pack(pady=(5,30))
 
 # =========================
-# Sidebar Buttons
+# 🚀 FIXED BUTTON FUNCTIONS
 # =========================
 
 def capture_dataset():
-    subprocess.Popen([sys.executable,"dataset_capture.py"])
+    loading = show_loading("Opening Camera...")
+    app.after(100, lambda: subprocess.Popen([sys.executable,"dataset_capture.py"]))
+    app.after(2000, loading.destroy)
 
 
+# 🔥 FIX 1 (FAST RECOGNITION)
 def start_recognition():
-    subprocess.Popen([sys.executable,"face_recognition.py"])
+    loading = show_loading("Starting Face Recognition...")
+
+    def run():
+        os.system(f"{sys.executable} face_recognition.py")
+
+    threading.Thread(target=run, daemon=True).start()
+
+    app.after(2000, loading.destroy)
 
 
+# 🔥 FIX 2 (FAST EXCEL OPEN)
 def view_attendance():
     if os.path.exists("attendance.xlsx"):
-        subprocess.Popen(["open","attendance.xlsx"])
+        threading.Thread(
+            target=lambda: os.system("open attendance.xlsx"),
+            daemon=True
+        ).start()
 
 
 def exit_app():
     app.destroy()
 
-
-btn1 = ctk.CTkButton(
-    sidebar,
-    text="📸 Capture Dataset",
-    command=capture_dataset,
-    width=200,
-    height=45
-)
-btn1.pack(pady=10)
-
-btn2 = ctk.CTkButton(
-    sidebar,
-    text="🧠 Start Recognition",
-    command=start_recognition,
-    width=200,
-    height=45
-)
-btn2.pack(pady=10)
-
-btn3 = ctk.CTkButton(
-    sidebar,
-    text="📊 View Attendance",
-    command=view_attendance,
-    width=200,
-    height=45
-)
-btn3.pack(pady=10)
-
-btn4 = ctk.CTkButton(
-    sidebar,
-    text="🚪 Exit",
-    command=exit_app,
-    fg_color="red",
-    hover_color="#8b0000",
-    width=200,
-    height=45
-)
-btn4.pack(pady=30)
+# Buttons
+ctk.CTkButton(sidebar,text="📸 Capture Dataset",command=capture_dataset,width=200,height=45).pack(pady=10)
+ctk.CTkButton(sidebar,text="🧠 Start Recognition",command=start_recognition,width=200,height=45).pack(pady=10)
+ctk.CTkButton(sidebar,text="📊 View Attendance",command=view_attendance,width=200,height=45).pack(pady=10)
+ctk.CTkButton(sidebar,text="🚪 Exit",command=exit_app,fg_color="red",hover_color="#8b0000",width=200,height=45).pack(pady=30)
 
 # =========================
 # Main Dashboard
@@ -109,17 +107,9 @@ btn4.pack(pady=30)
 main = ctk.CTkFrame(app, fg_color="#0f172a")
 main.pack(side="right", expand=True, fill="both", padx=40, pady=40)
 
-title = ctk.CTkLabel(
-    main,
-    text="Dashboard",
-    font=("Arial",40,"bold")
-)
-title.pack(pady=10)
+ctk.CTkLabel(main,text="Dashboard",font=("Arial",40,"bold")).pack(pady=10)
 
-# =========================
-# Live Time
-# =========================
-
+# Time
 time_label = ctk.CTkLabel(main,font=("Arial",18))
 time_label.pack()
 
@@ -131,38 +121,25 @@ def update_time():
 update_time()
 
 # =========================
-# Statistics Cards
+# Stats
 # =========================
 
 stats_frame = ctk.CTkFrame(main, fg_color="#0f172a")
 stats_frame.pack(pady=50)
 
-total_card = ctk.CTkFrame(stats_frame,width=260,height=150,fg_color="#1e293b")
-total_card.grid(row=0,column=0,padx=25)
+cards = []
+labels = ["Total Students","Present Today","Absent Today"]
 
-present_card = ctk.CTkFrame(stats_frame,width=260,height=150,fg_color="#1e293b")
-present_card.grid(row=0,column=1,padx=25)
+for i in range(3):
+    card = ctk.CTkFrame(stats_frame,width=260,height=150,fg_color="#1e293b")
+    card.grid(row=0,column=i,padx=25)
+    
+    ctk.CTkLabel(card,text=labels[i],font=("Arial",18)).pack(pady=10)
+    val = ctk.CTkLabel(card,font=("Arial",36,"bold"))
+    val.pack()
+    cards.append(val)
 
-absent_card = ctk.CTkFrame(stats_frame,width=260,height=150,fg_color="#1e293b")
-absent_card.grid(row=0,column=2,padx=25)
-
-total_label = ctk.CTkLabel(total_card,text="Total Students",font=("Arial",18))
-total_label.pack(pady=10)
-
-present_label = ctk.CTkLabel(present_card,text="Present Today",font=("Arial",18))
-present_label.pack(pady=10)
-
-absent_label = ctk.CTkLabel(absent_card,text="Absent Today",font=("Arial",18))
-absent_label.pack(pady=10)
-
-total_value = ctk.CTkLabel(total_card,font=("Arial",36,"bold"))
-total_value.pack()
-
-present_value = ctk.CTkLabel(present_card,font=("Arial",36,"bold"))
-present_value.pack()
-
-absent_value = ctk.CTkLabel(absent_card,font=("Arial",36,"bold"))
-absent_value.pack()
+total_value, present_value, absent_value = cards
 
 # =========================
 # Attendance Table
@@ -171,23 +148,10 @@ absent_value.pack()
 table_frame = ctk.CTkFrame(main, fg_color="#1e293b")
 table_frame.pack(pady=20)
 
-table_title = ctk.CTkLabel(
-    table_frame,
-    text="Today's Attendance",
-    font=("Arial",22,"bold")
-)
-table_title.pack(pady=10)
+ctk.CTkLabel(table_frame,text="Today's Attendance",font=("Arial",22,"bold")).pack(pady=10)
 
-table_box = ctk.CTkTextbox(
-    table_frame,
-    width=750,
-    height=230
-)
+table_box = ctk.CTkTextbox(table_frame,width=750,height=230)
 table_box.pack()
-
-# =========================
-# Data Paths
-# =========================
 
 DATASET = "images/student_photos"
 ATTENDANCE = "attendance.xlsx"
@@ -198,33 +162,24 @@ ATTENDANCE = "attendance.xlsx"
 
 def update_stats():
 
-    total_students = 0
+    total_students = len(os.listdir(DATASET)) if os.path.exists(DATASET) else 0
     present_today = 0
-
     today = datetime.now().strftime("%d/%m/%Y")
 
     table_box.delete("1.0","end")
 
-    if os.path.exists(DATASET):
-        total_students = len(os.listdir(DATASET))
-
     if os.path.exists(ATTENDANCE):
-
         wb = load_workbook(ATTENDANCE)
         ws = wb.active
 
         for row in ws.iter_rows(min_row=2, values_only=True):
-
-            name = row[0]
-            date = row[1]
-            time = row[2]
+            name, date, time = row[:3]
 
             if date == today:
-
                 present_today += 1
-                table_box.insert("end",f"{name}   |   {time}\n")
+                table_box.insert("end", f"{name}   |   {time}\n")
 
-    absent_today = max(total_students-present_today,0)
+    absent_today = max(total_students - present_today, 0)
 
     total_value.configure(text=total_students)
     present_value.configure(text=present_today)
